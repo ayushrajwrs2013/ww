@@ -4,7 +4,7 @@ var path = require('path');
 var URL = require('url');
 
 var PORT = process.env.PORT || 5500;
-var ADMIN_KEY = process.env.ADMIN_KEY || '2gVaaxiSH4HL';
+var ADMIN_KEY = process.env.ADMIN_KEY || 'ayushandom';
 var ROOT = __dirname;
 var DATA_DIR = path.join(ROOT, 'data');
 var DB_FILE = path.join(DATA_DIR, 'responses.db');

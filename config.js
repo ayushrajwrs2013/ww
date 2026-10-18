@@ -8,7 +8,7 @@
    WASTEWISE_KEY : admin key required to view/export responses.
    ============================================================ */
 window.WASTEWISE_API = '';
-window.WASTEWISE_KEY = '2gVaaxiSH4HL';
+window.WASTEWISE_KEY = 'ayushandom';
 
 /* --- JSONP helper: lets the browser read data from Google Apps
        Script without running into CORS restrictions. --- */

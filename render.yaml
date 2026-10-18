@@ -7,4 +7,4 @@ services:
     startCommand: npm start
     envVars:
       - key: ADMIN_KEY
-        value: 2gVaaxiSH4HL
+        value: ayushandom

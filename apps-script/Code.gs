@@ -13,7 +13,7 @@
  * =====================================================================
  */
 
-var ADMIN_KEY = '2gVaaxiSH4HL';
+var ADMIN_KEY = 'ayushandom';
 var SHEET_NAME = 'Responses';
 
 var HEADERS = [
