@@ -96,12 +96,14 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     const FIELD_ORDER = ['Timestamp', 'Name', 'Age', 'Gender', 'Occupation', 'Town', 'Frequent Waste Types', 'Largest Waste', 'Segregate Waste', 'Food Waste Handling', 'Plastic Harms Aquatic Life', 'Useful Scientific Model', 'Other Details', 'Suggestion'];
     const WIDE = ['Frequent Waste Types', 'Other Details', 'Suggestion', 'Useful Scientific Model', 'Food Waste Handling'];
     const STORAGE_KEY = 'wastewise_viewer_key';
 
     let viewerKey = sessionStorage.getItem(STORAGE_KEY) || '';
+    let lastRows = [];
 
     function login() {
       const input = document.getElementById('keyInput');
@@ -121,20 +123,15 @@
     function load(key, fromLogin) {
       key = key || viewerKey;
       if (!key) return logout();
-      fetch('/api/stats?key=' + encodeURIComponent(key))
-        .then(function (r) {
-          if (r.status === 401) throw new Error('unauthorized');
-          return r.json();
-        })
-        .then(function (json) {
-          if (json.status !== 'success') throw new Error(json.message || 'error');
+      wwFetchStats(key)
+        .then(function (rows) {
           sessionStorage.setItem(STORAGE_KEY, key);
           viewerKey = key;
           document.getElementById('loginError').style.display = 'none';
           document.getElementById('loginView').hidden = true;
           document.getElementById('view').hidden = false;
-          document.getElementById('csvBtn').href = '/api/export.csv?key=' + encodeURIComponent(key);
-          render(json.responses || []);
+          lastRows = rows || [];
+          render(lastRows);
         })
         .catch(function (err) {
           sessionStorage.removeItem(STORAGE_KEY);
@@ -142,7 +139,7 @@
           document.getElementById('view').hidden = true;
           document.getElementById('loginView').hidden = false;
           const e = document.getElementById('loginError');
-          e.textContent = err.message === 'unauthorized' ? 'Incorrect key. Try again.' : 'Could not load data. Check server is running.';
+          e.textContent = err.message === 'unauthorized' ? 'Incorrect key. Try again.' : 'Could not load data. ' + err.message;
           e.style.display = 'block';
         });
     }
@@ -178,6 +175,11 @@
     document.getElementById('keyInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') login(); });
     document.getElementById('refreshBtn').addEventListener('click', function () { load(); });
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('csvBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!lastRows.length) { alert('No responses to export yet.'); return; }
+      wwDownload('wastewise-responses.csv', wwToCsv(lastRows, FIELD_ORDER));
+    });
 
     if (viewerKey) load(viewerKey);
   </script>

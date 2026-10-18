@@ -248,17 +248,17 @@
     <span>WasteWise Project</span>
   </div>
 
+  <script src="config.js"></script>
   <script>
     /* ============================================================
        DATA STORAGE
-       SCRIPT_URL = '/api/submit' sends responses to the local
-       SQLite database (run `node server.js`).
-       If you host on Netlify (static only), set SCRIPT_URL to your
-       Google Apps Script Web app URL instead (see apps-script/).
-       If the server is unreachable, responses are kept on-device
-       in localStorage as a fallback so nothing is lost.
+       Responses are saved to the Google Sheet via the Apps Script
+       Web App URL configured in config.js (WASTEWISE_API).
+       If that is left empty, they go to the local Node server
+       (/api/submit). If neither is reachable, responses are kept
+       on-device in localStorage as a fallback so nothing is lost.
        ============================================================ */
-    const SCRIPT_URL = '/api/submit';
+    const SCRIPT_URL = window.WASTEWISE_API || '/api/submit';
 
     function toggleTheme() {
       const html = document.documentElement;

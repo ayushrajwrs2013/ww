@@ -147,17 +147,16 @@
     <span>WasteWise Project</span>
   </div>
 
+  <script src="config.js"></script>
   <script>
     /* ============================================================
        DATA SOURCE
-       SCRIPT_URL = '/api/stats' reads from the local SQLite
-       database (run `node server.js`).
-       For a hosted/Netlify site, set SCRIPT_URL to your Google
-       Apps Script Web app URL and set VIEW_KEY to match.
-       VIEW_KEY must match ADMIN_KEY in server.js.
+       Reads responses from the Google Sheet via the Apps Script
+       Web App URL in config.js (WASTEWISE_API). If that is empty,
+       it reads from the local Node server (/api/stats).
+       VIEW_KEY must match ADMIN_KEY (config.js WASTEWISE_KEY).
        ============================================================ */
-    const SCRIPT_URL = '/api/stats';
-    const VIEW_KEY = '2gVaaxiSH4HL';
+    const VIEW_KEY = window.WASTEWISE_KEY;
 
     const PALETTE = ['#2E7D32', '#4CAF50', '#81C784', '#FF7043', '#42A5F5', '#AB47BC', '#FFA726', '#66BB6A', '#26A69A', '#EC407A'];
     const FIELD = {
@@ -205,22 +204,12 @@
       let responses = [];
       let live = false;
 
-      if (SCRIPT_URL) {
-        try {
-          const res = await fetch(SCRIPT_URL + '?key=' + encodeURIComponent(VIEW_KEY));
-          const raw = await res.text();
-          const clean = raw.slice(raw.indexOf('{'));
-          const json = JSON.parse(clean);
-          if (json.status !== 'success') throw new Error(json.message || 'Server error');
-          responses = json.responses || [];
-          live = true;
-        } catch (err) {
-          notice.hidden = false;
-          notice.textContent = 'Could not load live data (' + err.message + '). Showing responses saved on this device instead. Check SCRIPT_URL and VIEW_KEY in results.html.';
-        }
-      } else {
+      try {
+        responses = await wwFetchStats(VIEW_KEY);
+        live = true;
+      } catch (err) {
         notice.hidden = false;
-        notice.textContent = 'Live backend not connected yet. Set SCRIPT_URL in results.html to show responses from all respondents. For now, responses saved on this device are shown.';
+        notice.textContent = 'Could not load live data (' + err.message + '). Showing responses saved on this device instead.';
       }
 
       if (!live) {

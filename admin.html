@@ -108,12 +108,14 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
     const FIELD_ORDER = ['Timestamp', 'Name', 'Age', 'Gender', 'Occupation', 'Town', 'Frequent Waste Types', 'Largest Waste', 'Segregate Waste', 'Food Waste Handling', 'Plastic Harms Aquatic Life', 'Useful Scientific Model', 'Other Details', 'Suggestion'];
     const WIDE = ['Frequent Waste Types', 'Other Details', 'Suggestion', 'Useful Scientific Model', 'Food Waste Handling'];
     const STORAGE_KEY = 'wastewise_admin_key';
 
     let adminKey = sessionStorage.getItem(STORAGE_KEY) || '';
+    let lastRows = [];
 
     function login() {
       const input = document.getElementById('keyInput');
@@ -134,20 +136,15 @@
     function loadResponses(key, fromLogin) {
       key = key || adminKey;
       if (!key) return logout();
-      fetch('/api/stats?key=' + encodeURIComponent(key))
-        .then(function (r) {
-          if (r.status === 401) throw new Error('unauthorized');
-          return r.json();
-        })
-        .then(function (json) {
-          if (json.status !== 'success') throw new Error(json.message || 'error');
+      wwFetchStats(key)
+        .then(function (rows) {
           sessionStorage.setItem(STORAGE_KEY, key);
           adminKey = key;
           document.getElementById('loginError').style.display = 'none';
           document.getElementById('loginView').hidden = true;
           document.getElementById('dbView').hidden = false;
-          document.getElementById('csvBtn').href = '/api/export.csv?key=' + encodeURIComponent(key);
-          render(json.responses || []);
+          lastRows = rows || [];
+          render(lastRows);
         })
         .catch(function (err) {
           if (err.message === 'unauthorized') {
@@ -160,7 +157,7 @@
             e.style.display = 'block';
           } else {
             const e = document.getElementById('loginError');
-            e.textContent = 'Could not load responses. Is the server running?';
+            e.textContent = 'Could not load responses. ' + err.message;
             e.style.display = 'block';
           }
         });
@@ -202,11 +199,13 @@
       const btn = e.target.closest('button[data-id]');
       if (!btn) return;
       if (!confirm('Delete this response permanently?')) return;
-      fetch('/api/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: adminKey, id: btn.dataset.id })
-      }).then(function () { loadResponses(); });
+      wwDeleteResponse(adminKey, btn.dataset.id).then(function () { loadResponses(); });
+    });
+
+    document.getElementById('csvBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!lastRows.length) { alert('No responses to export yet.'); return; }
+      wwDownload('wastewise-responses.csv', wwToCsv(lastRows, FIELD_ORDER));
     });
 
     if (adminKey) loadResponses(adminKey);
