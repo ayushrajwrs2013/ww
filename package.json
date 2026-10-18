@@ -1,0 +1,12 @@
+{
+  "name": "wastewise",
+  "version": "1.0.0",
+  "description": "WasteWise waste management survey site with SQLite backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "sql.js": "^1.8.0"
+  }
+}

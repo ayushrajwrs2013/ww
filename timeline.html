@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteWise - Decomposition Timeline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root, [data-theme="light"] {
+      --primary: #2E7D32;
+      --primary-light: #4CAF50;
+      --bg: #F5F9F5;
+      --white: #FFFFFF;
+      --text: #1A1A2E;
+      --text-light: #5C6B5C;
+    }
+    [data-theme="dark"] {
+      --primary: #4CAF50;
+      --primary-light: #2E7D32;
+      --bg: #0D1B0D;
+      --white: #1A2E1A;
+      --text: #E8F5E8;
+      --text-light: #A5C9A5;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .navbar { background: var(--white); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+    .navbar .logo { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .navbar .nav-links { display: flex; gap: 8px; }
+    .navbar .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: all 0.2s; }
+    .navbar .nav-links a:hover, .navbar .nav-links a.active { background: var(--primary); color: var(--white); }
+    .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 1000; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--primary); background: var(--white); cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+    .theme-toggle:hover { transform: scale(1.1); }
+    .theme-toggle .icon { font-size: 24px; }
+    .theme-toggle .sun-icon { display: block; color: #FFA000; }
+    .theme-toggle .moon-icon { display: none; color: #5C6BC0; }
+    [data-theme="dark"] .theme-toggle .sun-icon { display: none; }
+    [data-theme="dark"] .theme-toggle .moon-icon { display: block; }
+    .section { padding: 24px 20px; max-width: 500px; margin: 0 auto; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .section-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .timeline-container { background: var(--white); border-radius: 20px; padding: 24px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .timeline-header { text-align: center; margin-bottom: 20px; }
+    .timeline-header h3 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .timeline-header p { font-size: 13px; color: var(--text-light); }
+    .timeline-slider { width: 100%; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336); -webkit-appearance: none; appearance: none; outline: none; margin: 20px 0; }
+    .timeline-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 3px solid var(--white); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .timeline-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 3px solid var(--white); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .timeline-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-light); margin-bottom: 20px; }
+    .timeline-items { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .timeline-item { background: var(--bg); border-radius: 16px; padding: 16px; text-align: center; transition: all 0.3s ease; border: 2px solid transparent; }
+    .timeline-item .item-icon { font-size: 32px; margin-bottom: 8px; }
+    .timeline-item .item-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .timeline-item .item-time { font-size: 12px; color: var(--text-light); }
+    .footer { display: flex; align-items: center; justify-content: center; padding: 24px; font-size: 12px; color: var(--text-light); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">WasteWise</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="timeline.html" class="active">Timeline</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="survey.html">Survey</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="icon sun-icon">&#9728;</span>
+    <span class="icon moon-icon">&#9790;</span>
+  </button>
+
+  <div class="section">
+    <h2 class="section-title">Waste Decomposition Timeline</h2>
+    <p class="section-subtitle">Discover how long your trash really lasts</p>
+    <div class="timeline-container">
+      <div class="timeline-header">
+        <h3>How Long Does It Last?</h3>
+        <p>Drag the slider to see which items decompose over time</p>
+      </div>
+      <input type="range" class="timeline-slider" id="timelineSlider" min="0" max="500" value="0" oninput="updateTimeline(this.value)">
+      <div class="timeline-labels">
+        <span>0 years</span>
+        <span>100 years</span>
+        <span>200 years</span>
+        <span>300 years</span>
+        <span>400 years</span>
+        <span>500+ years</span>
+      </div>
+      <div class="timeline-items">
+        <div class="timeline-item">
+          <div class="item-icon">🍌</div>
+          <div class="item-name">Banana Peel</div>
+          <div class="item-time">2-5 weeks</div>
+        </div>
+        <div class="timeline-item">
+          <div class="item-icon">📄</div>
+          <div class="item-name">Paper</div>
+          <div class="item-time">2-6 weeks</div>
+        </div>
+        <div class="timeline-item">
+          <div class="item-icon">🍎</div>
+          <div class="item-name">Apple Core</div>
+          <div class="item-time">2 months</div>
+        </div>
+        <div class="timeline-item">
+          <div class="item-icon">👕</div>
+          <div class="item-name">Cotton Cloth</div>
+          <div class="item-time">6 months</div>
+        </div>
+        <div class="timeline-item">
+          <div class="item-icon">🧴</div>
+          <div class="item-name">Plastic Bottle</div>
+          <div class="item-time">450 years</div>
+        </div>
+        <div class="timeline-item">
+          <div class="item-icon">🍾</div>
+          <div class="item-name">Glass Bottle</div>
+          <div class="item-time">1 million years</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>WasteWise Project</span>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    function updateTimeline(value) {
+      const items = document.querySelectorAll('.timeline-item');
+      items.forEach(item => {
+        const timeText = item.querySelector('.item-time').textContent;
+        let years = 0;
+        if (timeText.includes('week')) years = 0.1;
+        else if (timeText.includes('month')) years = 0.5;
+        else if (timeText.includes('450')) years = 450;
+        else if (timeText.includes('million')) years = 1000;
+        if (value >= years) {
+          item.style.opacity = '1';
+          item.style.transform = 'scale(1)';
+        } else {
+          item.style.opacity = '0.4';
+          item.style.transform = 'scale(0.95)';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

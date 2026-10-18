@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteWise - Live Survey Results</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root, [data-theme="light"] {
+      --primary: #2E7D32;
+      --primary-light: #4CAF50;
+      --bg: #F5F9F5;
+      --white: #FFFFFF;
+      --text: #1A1A2E;
+      --text-light: #5C6B5C;
+      --bar-bg: #e8efe8;
+    }
+    [data-theme="dark"] {
+      --primary: #4CAF50;
+      --primary-light: #2E7D32;
+      --bg: #0D1B0D;
+      --white: #1A2E1A;
+      --text: #E8F5E8;
+      --text-light: #A5C9A5;
+      --bar-bg: #2a3d2a;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .navbar { background: var(--white); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+    .navbar .logo { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .navbar .nav-links { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .navbar .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: all 0.2s; }
+    .navbar .nav-links a:hover, .navbar .nav-links a.active { background: var(--primary); color: var(--white); }
+    .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 1000; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--primary); background: var(--white); cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+    .theme-toggle:hover { transform: scale(1.1); }
+    .theme-toggle .icon { font-size: 24px; }
+    .theme-toggle .sun-icon { display: block; color: #FFA000; }
+    .theme-toggle .moon-icon { display: none; color: #5C6BC0; }
+    [data-theme="dark"] .theme-toggle .sun-icon { display: none; }
+    [data-theme="dark"] .theme-toggle .moon-icon { display: block; }
+    .section { padding: 24px 20px; max-width: 720px; margin: 0 auto; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .section-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 8px; }
+    .status-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .status-dot { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-light); }
+    .status-dot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .status-dot.offline .dot { background: #FFA726; }
+    .refresh-btn { border: 2px solid var(--primary); background: transparent; color: var(--primary); font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+    .refresh-btn:hover { background: var(--primary); color: #fff; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (min-width: 560px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
+    .stat-card { background: var(--white); border-radius: 18px; padding: 18px 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 26px; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .chart-card { background: var(--white); border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .chart-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .bar-row { margin-bottom: 12px; }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; gap: 10px; }
+    .bar-label { color: var(--text); }
+    .bar-value { color: var(--text-light); font-weight: 600; white-space: nowrap; }
+    .bar-track { height: 12px; background: var(--bar-bg); border-radius: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 8px; width: 0; transition: width 0.6s ease; }
+    .empty-box { background: var(--white); border-radius: 20px; padding: 40px 24px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .empty-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .empty-box p { font-size: 14px; color: var(--text-light); margin-bottom: 18px; }
+    .btn { display: inline-block; padding: 12px 28px; border-radius: 14px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
+    .suggestion-item { border-left: 3px solid var(--primary); padding: 8px 0 8px 12px; margin-bottom: 12px; font-size: 14px; }
+    .suggestion-item .who { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .notice { background: #fff8e1; color: #8d6e00; border-radius: 12px; padding: 14px; font-size: 13px; margin-bottom: 16px; }
+    [data-theme="dark"] .notice { background: #3a2f00; color: #ffe082; }
+    .footer { display: flex; align-items: center; justify-content: center; padding: 24px; font-size: 12px; color: var(--text-light); }
+    .spinner { width: 34px; height: 34px; border: 4px solid var(--bar-bg); border-top-color: var(--primary); border-radius: 50%; margin: 30px auto; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #chartArea[hidden], #emptyArea[hidden], #loadingArea[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">WasteWise</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="survey.html">Survey</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="icon sun-icon">&#9728;</span>
+    <span class="icon moon-icon">&#9790;</span>
+  </button>
+
+  <div class="section">
+    <h2 class="section-title">Live Survey Results</h2>
+    <p class="section-subtitle">Real-time statistics from waste management survey responses across India.</p>
+
+    <div class="status-row">
+      <span class="status-dot offline" id="statusDot"><span class="dot"></span><span id="statusText">Connecting...</span></span>
+      <button class="refresh-btn" onclick="loadData()">Refresh</button>
+    </div>
+
+    <div class="notice" id="setupNotice" hidden></div>
+
+    <div id="loadingArea"><div class="spinner"></div></div>
+
+    <div id="emptyArea" hidden>
+      <div class="empty-box">
+        <h3>No responses yet</h3>
+        <p>Be the first to share your waste habits — results will appear here automatically.</p>
+        <a href="survey.html" class="btn">Take the Survey</a>
+      </div>
+    </div>
+
+    <div id="chartArea" hidden>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Responses</div></div>
+        <div class="stat-card"><div class="stat-value" id="statTowns">0</div><div class="stat-label">Towns covered</div></div>
+        <div class="stat-card"><div class="stat-value" id="statSegregate">0%</div><div class="stat-label">Always segregate</div></div>
+        <div class="stat-card"><div class="stat-value" id="statHarm">0%</div><div class="stat-label">Plastic harms aquatic life</div></div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Responses over time</h3>
+        <div id="lineChart"></div>
+      </div>
+
+      <div class="chart-card"><h3>Age group</h3><div id="chartAge"></div></div>
+      <div class="chart-card"><h3>Gender</h3><div id="chartGender"></div></div>
+      <div class="chart-card"><h3>Top towns / cities</h3><div id="chartTown"></div></div>
+      <div class="chart-card"><h3>Top occupations</h3><div id="chartOccupation"></div></div>
+      <div class="chart-card"><h3>1. Most frequently generated waste</h3><div id="chartFrequent"></div></div>
+      <div class="chart-card"><h3>2. Waste generated in largest quantity</h3><div id="chartLargest"></div></div>
+      <div class="chart-card"><h3>3. Separate waste before disposal?</h3><div id="chartSegregate"></div></div>
+      <div class="chart-card"><h3>4. What happens to food / vegetable waste?</h3><div id="chartFoodWaste"></div></div>
+      <div class="chart-card"><h3>5. Can plastic waste harm rivers &amp; aquatic life?</h3><div id="chartHarm"></div></div>
+      <div class="chart-card"><h3>6. Most useful scientific model</h3><div id="chartModel"></div></div>
+
+      <div class="chart-card" id="suggestionsCard" hidden>
+        <h3>7. Suggestions from respondents</h3>
+        <div id="suggestionsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>WasteWise Project</span>
+  </div>
+
+  <script>
+    /* ============================================================
+       DATA SOURCE
+       SCRIPT_URL = '/api/stats' reads from the local SQLite
+       database (run `node server.js`).
+       For a hosted/Netlify site, set SCRIPT_URL to your Google
+       Apps Script Web app URL and set VIEW_KEY to match.
+       VIEW_KEY must match ADMIN_KEY in server.js.
+       ============================================================ */
+    const SCRIPT_URL = '/api/stats';
+    const VIEW_KEY = '2gVaaxiSH4HL';
+
+    const PALETTE = ['#2E7D32', '#4CAF50', '#81C784', '#FF7043', '#42A5F5', '#AB47BC', '#FFA726', '#66BB6A', '#26A69A', '#EC407A'];
+    const FIELD = {
+      timestamp: 'Timestamp',
+      name: 'Name',
+      age: 'Age',
+      gender: 'Gender',
+      occupation: 'Occupation',
+      town: 'Town',
+      wasteFrequent: 'Frequent Waste Types',
+      wasteLargest: 'Largest Waste',
+      segregate: 'Segregate Waste',
+      foodWaste: 'Food Waste Handling',
+      plasticHarm: 'Plastic Harms Aquatic Life',
+      modelUseful: 'Useful Scientific Model',
+      otherDetails: 'Other Details',
+      suggestion: 'Suggestion'
+    };
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    async function loadData() {
+      const loading = document.getElementById('loadingArea');
+      const empty = document.getElementById('emptyArea');
+      const charts = document.getElementById('chartArea');
+      const notice = document.getElementById('setupNotice');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+
+      loading.hidden = false;
+      empty.hidden = true;
+      charts.hidden = true;
+      notice.hidden = true;
+
+      let responses = [];
+      let live = false;
+
+      if (SCRIPT_URL) {
+        try {
+          const res = await fetch(SCRIPT_URL + '?key=' + encodeURIComponent(VIEW_KEY));
+          const raw = await res.text();
+          const clean = raw.slice(raw.indexOf('{'));
+          const json = JSON.parse(clean);
+          if (json.status !== 'success') throw new Error(json.message || 'Server error');
+          responses = json.responses || [];
+          live = true;
+        } catch (err) {
+          notice.hidden = false;
+          notice.textContent = 'Could not load live data (' + err.message + '). Showing responses saved on this device instead. Check SCRIPT_URL and VIEW_KEY in results.html.';
+        }
+      } else {
+        notice.hidden = false;
+        notice.textContent = 'Live backend not connected yet. Set SCRIPT_URL in results.html to show responses from all respondents. For now, responses saved on this device are shown.';
+      }
+
+      if (!live) {
+        responses = (JSON.parse(localStorage.getItem('wastewise_survey_responses') || '[]')).map(function (r) {
+          return {
+            [FIELD.timestamp]: r.timestamp,
+            [FIELD.name]: r.name,
+            [FIELD.age]: r.age,
+            [FIELD.gender]: r.gender,
+            [FIELD.occupation]: r.occupation,
+            [FIELD.town]: r.town,
+            [FIELD.wasteFrequent]: r.wasteFrequent,
+            [FIELD.wasteLargest]: r.wasteLargest,
+            [FIELD.segregate]: r.segregate,
+            [FIELD.foodWaste]: r.foodWaste,
+            [FIELD.plasticHarm]: r.plasticHarm,
+            [FIELD.modelUseful]: r.modelUseful,
+            [FIELD.otherDetails]: r.otherDetails,
+            [FIELD.suggestion]: r.suggestion
+          };
+        });
+      }
+
+      statusDot.classList.toggle('offline', !live);
+      statusText.textContent = live ? ('Live · ' + responses.length + ' responses') : ('Local demo · ' + responses.length + ' responses');
+
+      loading.hidden = true;
+      if (!responses.length) {
+        empty.hidden = false;
+        return;
+      }
+
+      render(responses);
+      charts.hidden = false;
+    }
+
+    function countBy(responses, field) {
+      const counts = {};
+      responses.forEach(function (r) {
+        const v = (r[field] || '').trim();
+        if (!v) return;
+        counts[v] = (counts[v] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function countMulti(responses, field) {
+      const counts = {};
+      responses.forEach(function (r) {
+        (r[field] || '').split(',').forEach(function (part) {
+          const v = part.trim();
+          if (!v) return;
+          counts[v] = (counts[v] || 0) + 1;
+        });
+      });
+      return counts;
+    }
+
+    function topN(counts, n) {
+      const out = {};
+      Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })
+        .slice(0, n).forEach(function (k) { out[k] = counts[k]; });
+      return out;
+    }
+
+    function ageBin(age) {
+      const a = parseInt(age, 10);
+      if (!a || a < 0) return '';
+      if (a < 12) return 'Below 12';
+      if (a <= 18) return '12 – 18';
+      if (a <= 25) return '19 – 25';
+      if (a <= 40) return '26 – 40';
+      if (a <= 60) return '41 – 60';
+      return 'Above 60';
+    }
+
+    function countBinned(responses, field, binner, order) {
+      const counts = {};
+      responses.forEach(function (r) {
+        const v = binner(r[field] || '');
+        if (!v) return;
+        counts[v] = (counts[v] || 0) + 1;
+      });
+      return orderBy(counts, order);
+    }
+
+    function render(responses) {
+      const total = responses.length;
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statTowns').textContent = Object.keys(countBy(responses, FIELD.town)).length;
+
+      const seg = countBy(responses, FIELD.segregate);
+      document.getElementById('statSegregate').textContent = pct(seg['Always'] || 0, total);
+
+      const harm = countBy(responses, FIELD.plasticHarm);
+      document.getElementById('statHarm').textContent = pct(harm['Yes'] || 0, total);
+
+      drawBars('chartAge', countBinned(responses, FIELD.age, ageBin, ['Below 12', '12 – 18', '19 – 25', '26 – 40', '41 – 60', 'Above 60']), total);
+      drawBars('chartGender', countBy(responses, FIELD.gender), total);
+      drawBars('chartTown', topN(countBy(responses, FIELD.town), 8), total);
+      drawBars('chartOccupation', topN(countBy(responses, FIELD.occupation), 8), total);
+      drawBars('chartFrequent', countMulti(responses, FIELD.wasteFrequent), total);
+      drawBars('chartLargest', orderBy(countBy(responses, FIELD.wasteLargest), ['Biodegradable waste', 'Plastic', 'Paper', 'Metal / glass', 'Other']), total);
+      drawBars('chartSegregate', orderBy(countBy(responses, FIELD.segregate), ['Always', 'Sometimes', 'Never']), total);
+      drawBars('chartFoodWaste', orderBy(countBy(responses, FIELD.foodWaste), ['Put it in the general waste', 'Compost it', 'Give it for animal feed', 'Other']), total);
+      drawBars('chartHarm', orderBy(countBy(responses, FIELD.plasticHarm), ['Yes', 'No', "Don't know"]), total);
+      drawBars('chartModel', orderBy(countBy(responses, FIELD.modelUseful), ['River Waste Cleaner Model', 'Waste-to-Biogas Model', 'Plastic Waste Recycling Model', 'Composting Model', 'Other']), total);
+
+      drawLine(responses);
+      drawSuggestions(responses);
+    }
+
+    function pct(n, total) { return total ? Math.round((n / total) * 100) + '%' : '0%'; }
+
+    function orderBy(counts, order) {
+      const out = {};
+      order.forEach(function (k) { if (counts[k]) out[k] = counts[k]; });
+      Object.keys(counts).forEach(function (k) { if (!(k in out)) out[k] = counts[k]; });
+      return out;
+    }
+
+    function drawBars(containerId, counts, total) {
+      const el = document.getElementById(containerId);
+      const keys = Object.keys(counts);
+      if (!keys.length) {
+        el.innerHTML = '<div style="font-size:13px;color:var(--text-light)">No data yet</div>';
+        return;
+      }
+      const max = Math.max.apply(null, keys.map(function (k) { return counts[k]; }));
+      el.innerHTML = keys.map(function (key, i) {
+        const p = Math.round((counts[key] / max) * 100);
+        const share = pct(counts[key], total);
+        return '<div class="bar-row">' +
+          '<div class="bar-top"><span class="bar-label">' + escapeHtml(key) + '</span>' +
+          '<span class="bar-value">' + counts[key] + ' · ' + share + '</span></div>' +
+          '<div class="bar-track"><div class="bar-fill" data-w="' + p + '" style="background:' + PALETTE[i % PALETTE.length] + '"></div></div>' +
+          '</div>';
+      }).join('');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.querySelectorAll('.bar-fill').forEach(function (bar) {
+            bar.style.width = bar.dataset.w + '%';
+          });
+        });
+      });
+    }
+
+    function drawLine(responses) {
+      const el = document.getElementById('lineChart');
+      const days = {};
+      responses.forEach(function (r) {
+        const t = r[FIELD.timestamp];
+        if (!t) return;
+        const d = t.slice(0, 10);
+        days[d] = (days[d] || 0) + 1;
+      });
+      const keys = Object.keys(days).sort();
+      if (keys.length < 2) {
+        el.innerHTML = '<div style="font-size:13px;color:var(--text-light)">' +
+          (keys.length ? keys[0] + ' — ' + days[keys[0]] + ' response(s) so far' : 'No data yet') + '. A trend line appears once responses arrive on 2 or more days.</div>';
+        return;
+      }
+      const W = 640, H = 180, padX = 34, padY = 24;
+      const max = Math.max.apply(null, keys.map(function (k) { return days[k]; }));
+      const stepX = (W - padX * 2) / (keys.length - 1);
+      const points = keys.map(function (k, i) {
+        const x = padX + i * stepX;
+        const y = H - padY - (days[k] / max) * (H - padY * 2);
+        return { x: x, y: y, k: k, v: days[k] };
+      });
+      const line = points.map(function (p) { return p.x + ',' + p.y; }).join(' ');
+      const area = padX + ',' + (H - padY) + ' ' + line + ' ' + (padX + (keys.length - 1) * stepX) + ',' + (H - padY);
+      const dots = points.map(function (p) {
+        return '<circle cx="' + p.x + '" cy="' + p.y + '" r="3.5" fill="#2E7D32"><title>' + p.k + ': ' + p.v + '</title></circle>';
+      }).join('');
+      const labels = points.map(function (p, i) {
+        if (i !== 0 && i !== points.length - 1 && points.length > 5 && i % 2 !== 0) return '';
+        return '<text x="' + p.x + '" y="' + (H - 6) + '" font-size="9" style="fill:var(--text-light)" text-anchor="middle">' + p.k.slice(5) + '</text>';
+      }).join('');
+      el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto">' +
+        '<polygon points="' + area + '" fill="rgba(76,175,80,0.15)"/>' +
+        '<polyline points="' + line + '" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linejoin="round"/>' +
+        dots + labels +
+        '<text x="' + padX + '" y="14" font-size="10" style="fill:var(--text-light)">max ' + max + '/day</text>' +
+        '</svg>';
+    }
+
+    function drawSuggestions(responses) {
+      const items = responses.filter(function (r) { return (r[FIELD.suggestion] || '').trim(); }).reverse().slice(0, 8);
+      const card = document.getElementById('suggestionsCard');
+      if (!items.length) { card.hidden = true; return; }
+      document.getElementById('suggestionsList').innerHTML = items.map(function (r) {
+        const who = (r[FIELD.name] && r[FIELD.name] !== 'Anonymous') ? r[FIELD.name] : 'Anonymous';
+        const where = r[FIELD.town] ? ' · ' + escapeHtml(r[FIELD.town]) : '';
+        return '<div class="suggestion-item">' + escapeHtml(r[FIELD.suggestion]) +
+          '<div class="who">— ' + escapeHtml(who) + where + '</div></div>';
+      }).join('');
+      card.hidden = false;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

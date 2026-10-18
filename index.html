@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteWise - Smart Waste Management</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root, [data-theme="light"] {
+      --primary: #2E7D32;
+      --primary-light: #4CAF50;
+      --primary-dark: #1B5E20;
+      --accent: #81C784;
+      --bg: #F5F9F5;
+      --white: #FFFFFF;
+      --text: #1A1A2E;
+      --text-light: #5C6B5C;
+      --reduce: #FF7043;
+      --reuse: #42A5F5;
+      --retrieve: #AB47BC;
+      --redesign: #FFA726;
+      --recycle: #66BB6A;
+    }
+    [data-theme="dark"] {
+      --primary: #4CAF50;
+      --primary-light: #2E7D32;
+      --primary-dark: #1B5E20;
+      --accent: #81C784;
+      --bg: #0D1B0D;
+      --white: #1A2E1A;
+      --text: #E8F5E8;
+      --text-light: #A5C9A5;
+      --reduce: #FF7043;
+      --reuse: #42A5F5;
+      --retrieve: #AB47BC;
+      --redesign: #FFA726;
+      --recycle: #66BB6A;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    .navbar {
+      background: var(--white);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar .logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .navbar .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    .navbar .nav-links a {
+      text-decoration: none;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .navbar .nav-links a:hover,
+    .navbar .nav-links a.active {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      background: var(--white);
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    }
+    .theme-toggle .icon {
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+    .theme-toggle .sun-icon { display: block; color: #FFA000; }
+    .theme-toggle .moon-icon { display: none; color: #5C6BC0; }
+    [data-theme="dark"] .theme-toggle .sun-icon { display: none; }
+    [data-theme="dark"] .theme-toggle .moon-icon { display: block; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      padding: 60px 24px 48px;
+      text-align: center;
+      border-radius: 0 0 32px 32px;
+      color: var(--white);
+    }
+    .hero h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .hero .subtitle { font-size: 14px; font-weight: 600; letter-spacing: 2px; opacity: 0.9; margin-bottom: 12px; }
+    .hero .description { font-size: 14px; opacity: 0.8; max-width: 400px; margin: 0 auto; }
+
+    /* Sections */
+    .section { padding: 24px 20px; max-width: 500px; margin: 0 auto; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .section-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    /* Pillar Cards */
+    .pillar-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pillar-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .pillar-card .pillar-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      object-fit: cover;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .pillar-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .pillar-card p { font-size: 14px; color: var(--text-light); margin-bottom: 12px; }
+    .pillar-card .learn-more { font-size: 14px; font-weight: 600; }
+
+    /* Gallery */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .gallery-item {
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      display: block;
+    }
+    .gallery-item .caption {
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-light);
+      text-align: center;
+    }
+
+    /* People Cards */
+    .person-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .person-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .person-info { flex: 1; }
+    .person-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .person-info .role { font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 6px; }
+    .person-info .bio { font-size: 13px; color: var(--text-light); line-height: 1.5; }
+
+    /* Mission */
+    .mission-section {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      margin: 16px 20px 24px;
+      max-width: 460px;
+      border-radius: 20px;
+      padding: 28px 24px;
+      color: var(--white);
+      box-shadow: 0 4px 20px rgba(46,125,50,0.3);
+    }
+    .mission-section h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+    .mission-section p { font-size: 14px; line-height: 1.7; opacity: 0.9; margin-bottom: 16px; }
+    .mission-section .mission-points { list-style: none; }
+    .mission-section .mission-points li {
+      display: flex; align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+    .mission-section .mission-points li::before {
+      content: "";
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Action Buttons */
+    .action-buttons { display: flex; gap: 12px; }
+    .btn {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s;
+    }
+    .btn:hover { transform: scale(1.02); }
+    .btn-primary { background: var(--primary); color: var(--white); }
+    .btn-secondary { background: var(--white); color: var(--primary); border: 1.5px solid var(--primary); }
+
+    /* Contact */
+    .contact-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .contact-item:last-child { border-bottom: none; }
+    .contact-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .contact-label { font-size: 12px; color: var(--text-light); margin-bottom: 2px; }
+    .contact-value { font-size: 15px; color: var(--text); font-weight: 500; }
+
+    /* Did You Know */
+    .fact-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 20px;
+      padding: 28px 24px;
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(46,125,50,0.3);
+    }
+    .fact-card .fact-icon { font-size: 40px; margin-bottom: 12px; }
+    .fact-card .fact-text { font-size: 16px; font-weight: 600; line-height: 1.5; margin-bottom: 16px; }
+    .fact-card .fact-source { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+    .fact-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.5);
+      color: var(--white);
+      padding: 10px 24px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .fact-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+
+    /* Challenge */
+    .challenge-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .challenge-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .challenge-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .challenge-item:hover { transform: translateX(4px); }
+    .challenge-item.completed { opacity: 0.5; pointer-events: none; }
+    .challenge-item .challenge-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .challenge-item .challenge-info { flex: 1; }
+    .challenge-item .challenge-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .challenge-item .challenge-desc { font-size: 13px; color: var(--text-light); }
+    .challenge-item .challenge-points {
+      background: var(--primary);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .challenge-progress {
+      margin-top: 16px;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .challenge-progress .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .challenge-progress .progress-label { font-size: 13px; font-weight: 600; }
+    .challenge-progress .progress-value { font-size: 13px; color: var(--primary); font-weight: 700; }
+    .challenge-progress .progress-bar {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .challenge-progress .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* Recycling Impact Section */
+    .impact-section { padding: 16px 20px 24px; max-width: 500px; margin: 0 auto; }
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .impact-card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.2s;
+    }
+    .impact-card:hover { transform: translateY(-4px); }
+    .impact-card .impact-icon { font-size: 32px; margin-bottom: 8px; }
+    .impact-card .impact-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .impact-card .impact-desc { font-size: 12px; color: var(--text-light); }
+
+    /* Eco Pledge Section */
+    .pledge-section { padding: 16px 20px 24px; max-width: 500px; margin: 0 auto; }
+    .pledge-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 20px;
+      padding: 28px 24px;
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(46,125,50,0.3);
+    }
+    .pledge-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .pledge-card p { font-size: 14px; opacity: 0.9; margin-bottom: 20px; }
+    .pledge-input {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.9);
+    }
+    .pledge-input:focus { outline: 2px solid rgba(255,255,255,0.5); }
+    .pledge-btn {
+      background: var(--white);
+      color: var(--primary);
+      border: none;
+      padding: 14px 32px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .pledge-btn:hover { transform: scale(1.05); }
+    .pledge-wall {
+      margin-top: 20px;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .pledge-wall h4 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .pledge-item {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .pledge-item .pledge-name { font-weight: 700; color: var(--primary); }
+    .pledge-item .pledge-text { color: var(--text-light); margin-top: 4px; }
+
+    /* Chatbot */
+    .chatbot-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(46,125,50,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+    .chatbot-fab:hover { transform: scale(1.1); }
+    .chatbot-fab .notification {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #F44336;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chatbot-window {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      z-index: 1000;
+      width: 340px;
+      max-width: calc(100vw - 48px);
+      height: 480px;
+      max-height: calc(100vh - 140px);
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chatbot-window.active { display: flex; }
+    .chatbot-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: var(--white);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chatbot-header .bot-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .chatbot-header .bot-info h4 { font-size: 16px; font-weight: 700; }
+    .chatbot-header .bot-info p { font-size: 12px; opacity: 0.8; }
+    .chatbot-header .close-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .chatbot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-message.bot {
+      background: var(--bg);
+      color: var(--text);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-message.user {
+      background: var(--primary);
+      color: var(--white);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .chat-message .message-time {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+    .chatbot-input {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid #eee;
+      gap: 8px;
+    }
+    .chatbot-input input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .chatbot-input input:focus { border-color: var(--primary); }
+    .chatbot-input button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+    .chatbot-input button:hover { transform: scale(1.1); }
+    .chatbot-quick {
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      overflow-x: auto;
+    }
+    .chatbot-quick button {
+      background: var(--bg);
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chatbot-quick button:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">WasteWise</div>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="survey.html">Survey</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="icon sun-icon">&#9728;</span>
+    <span class="icon moon-icon">&#9790;</span>
+  </button>
+
+  <!-- Main View -->
+  <div id="mainView">
+    <div class="hero">
+      <img src="assets/logo.webp" alt="WasteWise Logo" onerror="this.style.display='none';" style="width:180px;height:180px;object-fit:cover;border-radius:50%;margin:0 auto 16px;display:block;">
+      <h1>WasteWise</h1>
+      <p class="subtitle">REDUCE · REUSE · RETRIEVE · REDESIGN · RECYCLE</p>
+      <p class="description">Building a sustainable future through smart waste management practices. Join us in making our planet cleaner, greener, and healthier.</p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Our 5 Pillars</h2>
+      <p class="section-subtitle">A comprehensive approach to sustainable waste management</p>
+      <div id="pillarList"></div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Our Team in Action</h2>
+      <p class="section-subtitle">Our team conducting surveys and community outreach</p>
+      <div class="gallery-grid">
+        <div class="gallery-item">
+          <img src="assets/survey%20with%20school%20staffs.webp" alt="Survey with school staffs">
+          <div class="caption">Survey with School Staffs</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/survey%20page.png" alt="Survey page">
+          <div class="caption">Survey Page</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/survey%20near%20our%20school.webp" alt="Survey near our school">
+          <div class="caption">Survey Near Our School</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/in%20house%20hold.svg" alt="Survey in households">
+          <div class="caption">Survey in Households</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/survey%20from%20teacher.webp" alt="Survey from teacher">
+          <div class="caption">Survey from Teacher</div>
+        </div>
+        <div class="gallery-item">
+          <img src="assets/survey%20from%20staffs.webp" alt="Survey from staffs">
+          <div class="caption">Survey from Staffs</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Our Guide Teacher</h2>
+      <p class="section-subtitle">Mentoring the next generation of environmentalists</p>
+      <div class="person-card">
+        <img class="person-avatar" src="assets/guide%20teacher.webp" alt="Guide Teacher">
+        <div class="person-info">
+          <h3>Guide Teacher</h3>
+          <div class="role">Environmental Science Educator</div>
+          <p class="bio">Dedicated to guiding young minds in understanding the importance of waste management.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Our Child Scientists</h2>
+      <p class="section-subtitle">Young minds leading the way in waste management</p>
+      <div class="person-card">
+        <img class="person-avatar" src="assets/scientist%201.webp" alt="Child Scientist 1">
+        <div class="person-info">
+          <h3>Child Scientist 1</h3>
+          <div class="role">Young Environmental Researcher</div>
+          <p class="bio">Passionate about finding innovative solutions to reduce waste in our community.</p>
+        </div>
+      </div>
+      <div class="person-card">
+        <img class="person-avatar" src="assets/scientist2.webp" alt="Child Scientist 2">
+        <div class="person-info">
+          <h3>Child Scientist 2</h3>
+          <div class="role">Eco-Warrior & Innovator</div>
+          <p class="bio">Dedicated to spreading awareness about the 5 R's through school programs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mission-section">
+      <h2>Our Mission</h2>
+      <p>To create a sustainable future by empowering communities with the knowledge and tools to manage waste effectively.</p>
+      <ul class="mission-points">
+        <li>Promote the 5 R's: Reduce, Reuse, Retrieve, Redesign, Recycle</li>
+        <li>Conduct community surveys to understand waste challenges</li>
+        <li>Educate and inspire children to become environmental leaders</li>
+        <li>Develop innovative solutions for waste reduction</li>
+        <li>Build cleaner, greener, and healthier communities</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Take Action Today</h2>
+      <p class="section-subtitle">Join thousands of people making a difference</p>
+      <div class="action-buttons">
+        <button class="btn btn-primary">Get Involved</button>
+        <button class="btn btn-secondary">Share</button>
+        <a href="admin.html" class="btn btn-secondary">&#128451; Database</a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Contact Us</h2>
+      <p class="section-subtitle">Get in touch with our team</p>
+      <div class="contact-card">
+        <div class="contact-item">
+          <div class="contact-icon">@</div>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-value">omnikhilwar09@gmail.com</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">P</div>
+          <div>
+            <div class="contact-label">Phone</div>
+            <div class="contact-value">+91 7209799346</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">I</div>
+          <div>
+            <div class="contact-label">Instagram</div>
+            <div class="contact-value">nikhil._.fx</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Did You Know?</h2>
+      <p class="section-subtitle">Amazing facts about waste and recycling</p>
+      <div class="fact-card">
+        <div class="fact-icon">🌍</div>
+        <div class="fact-text" id="factText">The Great Pacific Garbage Patch is twice the size of Texas!</div>
+        <div class="fact-source">Source: National Geographic</div>
+        <button class="fact-btn" onclick="nextFact()">Next Fact</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Waste Reduction Challenge</h2>
+      <p class="section-subtitle">Take on challenges to reduce your waste footprint</p>
+      <div class="challenge-card">
+        <h3>Daily Challenges</h3>
+        <p class="section-subtitle">Complete challenges to earn points!</p>
+        <div class="challenge-item" onclick="completeChallenge(0, this)">
+          <div class="challenge-icon">🛍️</div>
+          <div class="challenge-info">
+            <div class="challenge-title">Bring a Reusable Bag</div>
+            <div class="challenge-desc">Use a reusable bag instead of plastic</div>
+          </div>
+          <div class="challenge-points">+10 pts</div>
+        </div>
+        <div class="challenge-item" onclick="completeChallenge(1, this)">
+          <div class="challenge-icon">🥤</div>
+          <div class="challenge-info">
+            <div class="challenge-title">Skip the Straw</div>
+            <div class="challenge-desc">Drink without a plastic straw today</div>
+          </div>
+          <div class="challenge-points">+15 pts</div>
+        </div>
+        <div class="challenge-item" onclick="completeChallenge(2, this)">
+          <div class="challenge-icon">♻️</div>
+          <div class="challenge-info">
+            <div class="challenge-title">Sort Your Recycling</div>
+            <div class="challenge-desc">Properly separate recyclable materials</div>
+          </div>
+          <div class="challenge-points">+20 pts</div>
+        </div>
+        <div class="challenge-item" onclick="completeChallenge(3, this)">
+          <div class="challenge-icon">🍎</div>
+          <div class="challenge-info">
+            <div class="challenge-title">Compost Food Waste</div>
+            <div class="challenge-desc">Start composting your food scraps</div>
+          </div>
+          <div class="challenge-points">+25 pts</div>
+        </div>
+        <div class="challenge-progress">
+          <div class="progress-header">
+            <span class="progress-label">Your Progress</span>
+            <span class="progress-value" id="progressValue">0 / 70 pts</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="impact-section">
+      <h2 class="section-title">Recycling Impact</h2>
+      <p class="section-subtitle">What your recycling becomes</p>
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="impact-icon">🥤</div>
+          <div class="impact-title">Plastic Bottle</div>
+          <div class="impact-desc">Becomes polyester clothing, carpets, and new bottles</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">📰</div>
+          <div class="impact-title">Newspaper</div>
+          <div class="impact-desc">Becomes new paper, egg cartons, and insulation</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">🥫</div>
+          <div class="impact-title">Aluminum Can</div>
+          <div class="impact-desc">Becomes new cans in as little as 60 days</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">🍾</div>
+          <div class="impact-title">Glass Jar</div>
+          <div class="impact-desc">Becomes new glass containers and fiberglass</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">👕</div>
+          <div class="impact-title">Old Clothes</div>
+          <div class="impact-desc">Becomes insulation, rags, and new textiles</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-icon">📱</div>
+          <div class="impact-title">E-Waste</div>
+          <div class="impact-desc">Becomes new electronics and recovers precious metals</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pledge-section">
+      <h2 class="section-title">Eco Pledge Wall</h2>
+      <p class="section-subtitle">Commit to reducing waste and inspire others</p>
+      <div class="pledge-card">
+        <h3>Take the Pledge</h3>
+        <p>Commit to one waste reduction action and join our community of eco-warriors</p>
+        <input type="text" class="pledge-input" id="pledgeName" placeholder="Your name">
+        <input type="text" class="pledge-input" id="pledgeText" placeholder="I pledge to...">
+        <button class="pledge-btn" onclick="addPledge()">Sign the Pledge</button>
+      </div>
+      <div class="pledge-wall">
+        <h4>Pledge Wall</h4>
+        <div id="pledgeList">
+          <div class="pledge-item">
+            <div class="pledge-name">WasteWise Team</div>
+            <div class="pledge-text">We pledge to reduce plastic waste by 50% this year!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>WasteWise Project</span>
+    </div>
+
+    <!-- Chatbot -->
+    <button class="chatbot-fab" onclick="toggleChatbot()" aria-label="Open chatbot">
+      &#128172;
+      <span class="notification">1</span>
+    </button>
+
+    <div class="chatbot-window" id="chatbotWindow">
+      <div class="chatbot-header">
+        <div class="bot-avatar">&#129302;</div>
+        <div class="bot-info">
+          <h4>WasteWise Assistant</h4>
+          <p>Always here to help!</p>
+        </div>
+        <button class="close-btn" onclick="toggleChatbot()">&times;</button>
+      </div>
+      <div class="chatbot-messages" id="chatMessages">
+        <div class="chat-message bot">
+          Hi! I'm your WasteWise Assistant. Ask me anything about waste management, recycling, or sustainability!
+          <div class="message-time">Just now</div>
+        </div>
+      </div>
+      <div class="chatbot-quick">
+        <button onclick="sendQuickMessage('How to reduce waste?')">Reduce waste</button>
+        <button onclick="sendQuickMessage('What can I recycle?')">Recycling</button>
+        <button onclick="sendQuickMessage('Composting tips')">Composting</button>
+        <button onclick="sendQuickMessage('Plastic alternatives')">Alternatives</button>
+      </div>
+      <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter')sendMessage()">
+        <button onclick="sendMessage()">&#10148;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div id="detailView" class="hidden">
+    <div id="detailContent"></div>
+  </div>
+
+  <script>
+    // Theme Toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    // Did You Know
+    const facts = [
+      { text: "The Great Pacific Garbage Patch is twice the size of Texas!", source: "National Geographic" },
+      { text: "Recycling one aluminum can saves enough energy to run a TV for 3 hours!", source: "EPA" },
+      { text: "A glass bottle can take 1 million years to decompose.", source: "Greenpeace" },
+      { text: "The average person generates 4.4 pounds of trash every day.", source: "World Bank" },
+      { text: "Plastic bags can take up to 1,000 years to decompose.", source: "National Geographic" },
+      { text: "Recycling paper saves 17 trees per ton.", source: "EPA" },
+      { text: "Food waste makes up 24% of all landfill waste.", source: "UNEP" },
+      { text: "Only 9% of plastic worldwide gets recycled.", source: "UNEP" }
+    ];
+    let currentFact = 0;
+    function nextFact() {
+      currentFact = (currentFact + 1) % facts.length;
+      document.getElementById('factText').textContent = facts[currentFact].text;
+      document.querySelector('.fact-source').textContent = 'Source: ' + facts[currentFact].source;
+    }
+
+    // Challenge
+    let totalPoints = 0;
+    const maxPoints = 70;
+    const completedChallenges = [false, false, false, false];
+    const challengePoints = [10, 15, 20, 25];
+    function completeChallenge(index, element) {
+      if (completedChallenges[index]) return;
+      completedChallenges[index] = true;
+      totalPoints += challengePoints[index];
+      document.getElementById('progressValue').textContent = totalPoints + ' / ' + maxPoints + ' pts';
+      document.getElementById('progressFill').style.width = (totalPoints / maxPoints * 100) + '%';
+      element.classList.add('completed');
+    }
+
+    // Eco Pledge Wall
+    function addPledge() {
+      const name = document.getElementById('pledgeName').value.trim();
+      const text = document.getElementById('pledgeText').value.trim();
+      if (!name || !text) return;
+      const pledgeList = document.getElementById('pledgeList');
+      const item = document.createElement('div');
+      item.className = 'pledge-item';
+      item.innerHTML = '<div class="pledge-name">' + name + '</div><div class="pledge-text">' + text + '</div>';
+      pledgeList.insertBefore(item, pledgeList.firstChild);
+      document.getElementById('pledgeName').value = '';
+      document.getElementById('pledgeText').value = '';
+    }
+
+    // Chatbot
+    function toggleChatbot() {
+      const window = document.getElementById('chatbotWindow');
+      window.classList.toggle('active');
+      document.querySelector('.chatbot-fab .notification').style.display = 'none';
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      input.value = '';
+      setTimeout(() => {
+        const response = getBotResponse(text);
+        addMessage(response, 'bot');
+      }, 500);
+    }
+
+    function sendQuickMessage(text) {
+      addMessage(text, 'user');
+      setTimeout(() => {
+        const response = getBotResponse(text);
+        addMessage(response, 'bot');
+      }, 500);
+    }
+
+    function addMessage(text, sender) {
+      const messages = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = 'chat-message ' + sender;
+      msg.innerHTML = text + '<div class="message-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + '</div>';
+      messages.appendChild(msg);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function getBotResponse(input) {
+      const lower = input.toLowerCase();
+
+      // Greetings
+      if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey') || lower.includes('namaste')) return "Hello! I'm your WasteWise Assistant. I can help you with waste management, recycling, composting, sustainability, and more. What would you like to know?";
+
+      // Reduce waste
+      if (lower.includes('reduce') || lower.includes('less waste') || lower.includes('minimize') || lower.includes('cut down')) return "Here are proven ways to reduce waste:\n\n&#10003; Use reusable bags, bottles, and containers\n&#10003; Buy in bulk to reduce packaging\n&#10003; Go digital with receipts and bills\n&#10003; Repair items instead of replacing them\n&#10003; Compost food scraps\n&#10003; Buy second-hand when possible\n&#10003; Avoid single-use items\n&#10003; Plan meals to reduce food waste";
+
+      // Recycling
+      if (lower.includes('recycle') || lower.includes('recycling') || lower.includes('what can i recycle')) return "You can recycle these items:\n\n&#10003; Paper and cardboard\n&#10003; Plastic bottles and containers (check recycling number)\n&#10003; Glass bottles and jars\n&#10003; Metal cans and aluminum foil\n&#10003; Electronics at certified e-waste centers\n&#10003; Batteries at special collection points\n\nRemember to rinse containers and remove food residue before recycling!";
+
+      // Composting
+      if (lower.includes('compost') || lower.includes('composting') || lower.includes('compost bin')) return "Composting is easy and rewarding!\n\nYou CAN compost:\n&#10003; Fruit and vegetable scraps\n&#10003; Coffee grounds and tea bags\n&#10003; Eggshells\n&#10003; Yard waste and leaves\n&#10003; Cardboard and paper\n\nDo NOT compost:\n&#10007; Meat and fish\n&#10007; Dairy products\n&#10007; Oily foods\n&#10007; Pet waste";
+
+      // Plastic
+      if (lower.includes('plastic') || lower.includes('plastic waste') || lower.includes('plastic pollution')) return "Plastic pollution is a huge problem. Here's how to help:\n\n&#10003; Use reusable water bottles\n&#10003; Carry cloth shopping bags\n&#10003; Choose metal or glass containers\n&#10003; Use bamboo toothbrushes\n&#10003; Try beeswax wraps instead of cling film\n&#10003; Avoid plastic straws and cutlery\n&#10003; Buy products with minimal packaging\n\nDid you know? A plastic bottle takes 450 years to decompose!";
+
+      // E-waste
+      if (lower.includes('e-waste') || lower.includes('electronic') || lower.includes('old phone') || lower.includes('battery')) return "E-waste requires special handling:\n\n&#10003; Donate working electronics to schools or charities\n&#10003; Recycle at certified e-waste centers\n&#10003; Return old batteries to collection points\n&#10003; Wipe personal data before disposing\n&#10003; Check for manufacturer take-back programs\n\nNever throw electronics in regular trash — they contain toxic materials!";
+
+      // Food waste
+      if (lower.includes('food waste') || lower.includes('food scrap') || lower.includes('leftover')) return "Food waste tips:\n\n&#10003; Plan meals before shopping\n&#10003; Store food properly to extend freshness\n&#10003; Use leftovers creatively\n&#10003; Compost food scraps\n&#10003; Freeze items before they expire\n&#10003; Understand 'best before' vs 'use by' dates\n\nDid you know? Food waste makes up 24% of landfill waste!";
+
+      // Reuse
+      if (lower.includes('reuse') || lower.includes('repurpose') || lower.includes('upcycle')) return "Creative reuse ideas:\n\n&#10003; Glass jars for storage\n&#10003; Old t-shirts as cleaning rags\n&#10003; Cardboard boxes for organization\n&#10003; Wine corks for bulletin boards\n&#10003; Plastic containers for planters\n&#10003; Old newspapers for gift wrapping\n&#10003; Furniture upcycling and refinishing";
+
+      // Sustainability
+      if (lower.includes('sustainab') || lower.includes('eco') || lower.includes('green') || lower.includes('environment')) return "Sustainable living tips:\n\n&#10003; Follow the 5 R's: Reduce, Reuse, Retrieve, Redesign, Recycle\n&#10003; Conserve water and energy\n&#10003; Choose public transport or cycling\n&#10003; Support local and organic products\n&#10003; Plant trees and maintain green spaces\n&#10003; Educate others about waste management\n&#10003; Reduce your carbon footprint";
+
+      // Waste segregation
+      if (lower.includes('segregat') || lower.includes('sort') || lower.includes('separate') || lower.includes('bins')) return "Waste segregation guide:\n\n&#128465; Green bin: Organic/food waste\n&#128465; Blue bin: Paper and cardboard\n&#128465; Yellow bin: Plastics and metals\n&#128465; Red bin: Hazardous waste\n&#128465; Black bin: General/non-recyclable\n\nProper segregation makes recycling much more effective!";
+
+      // Landfill
+      if (lower.includes('landfill') || lower.includes('dump') || lower.includes('garbage')) return "About landfills:\n\n&#10007; Waste in landfills produces methane (a potent greenhouse gas)\n&#10007; Chemicals can leach into groundwater\n&#10007; Landfills take up valuable land\n&#10007; Most items take hundreds of years to decompose\n\nYou can help by reducing, reusing, and recycling!";
+
+      // Circular economy
+      if (lower.includes('circular') || lower.includes('economy') || lower.includes('zero waste')) return "The circular economy aims to:\n\n&#10003; Design waste out of products\n&#10003; Keep materials in use for longer\n&#10003; Regenerate natural systems\n&#10003; Create closed-loop systems\n&#10003; Eliminate the concept of 'waste'\n\nIt's about rethinking how we make and use things!";
+
+      // Climate change
+      if (lower.includes('climate') || lower.includes('global warming') || lower.includes('carbon')) return "Waste and climate change:\n\n&#10007; Landfills produce methane (25x more potent than CO2)\n&#10007; Manufacturing new products creates emissions\n&#10007; Transportation of goods adds to carbon footprint\n\nYou can help:\n&#10003; Reduce consumption\n&#10003; Recycle more\n&#10003; Compost food waste\n&#10003; Choose sustainable products";
+
+      // Water conservation
+      if (lower.includes('water') || lower.includes('save water')) return "Water conservation tips:\n\n&#10003; Fix leaking taps immediately\n&#10003; Take shorter showers\n&#10003; Collect rainwater for plants\n&#10003; Use water-efficient appliances\n&#10003; Don't let the tap run while brushing\n&#10003; Reuse water where possible\n\nEvery drop counts!";
+
+      // Thank you
+      if (lower.includes('thank') || lower.includes('thanks')) return "You're very welcome! Together we can make a huge difference. Every small action counts. Any other questions?";
+
+      // Goodbye
+      if (lower.includes('bye') || lower.includes('goodbye') || lower.includes('see you')) return "Goodbye! Remember: Reduce, Reuse, Retrieve, Redesign, Recycle. See you soon!";
+
+      // Default
+      return "Great question! Here are some general tips:\n\n&#10003; Follow the 5 R's: Reduce, Reuse, Retrieve, Redesign, Recycle\n&#10003; Start with one small change today\n&#10003; Every action counts!\n\nFeel free to ask me about:\n&#8226; Reducing waste\n&#8226; Recycling\n&#8226; Composting\n&#8226; Plastic alternatives\n&#8226; E-waste\n&#8226; Food waste\n&#8226; Sustainability\n&#8226; Waste segregation";
+    }
+
+    // Pillars
+    const pillars = [
+      { id: 1, title: 'Reduce', image: 'assets/reduce.png', color: '#FF7043', description: 'Minimize waste generation at the source by making conscious choices about consumption and packaging.', tips: ['Buy only what you need', 'Choose products with minimal packaging', 'Go digital with receipts and documents', 'Use reusable bags and containers'] },
+      { id: 2, title: 'Reuse', image: 'assets/reuse.png', color: '#42A5F5', description: 'Extend the life of items by finding new purposes for them before discarding.', tips: ['Donate clothes and furniture', 'Repurpose glass jars and containers', 'Use both sides of paper', 'Repair items instead of replacing them'] },
+      { id: 3, title: 'Retrieve', image: 'assets/retrive.jpg', color: '#AB47BC', description: 'Recover valuable materials and resources from waste streams through systematic collection.', tips: ['Separate recyclable materials', 'Compost organic waste', 'Collect e-waste for proper disposal', 'Participate in community clean-up drives'] },
+      { id: 4, title: 'Redesign', image: 'assets/redigine.jpg', color: '#FFA726', description: 'Rethink product design and processes to eliminate waste and maximize resource efficiency.', tips: ['Design for durability', 'Use recyclable materials', 'Implement circular economy principles', 'Innovate packaging solutions'] },
+      { id: 5, title: 'Recycle', image: 'assets/recycle.png', color: '#66BB6A', description: 'Process used materials into new products, reducing the need for virgin raw materials.', tips: ['Sort waste correctly', 'Follow local recycling guidelines', 'Buy recycled products', 'Support recycling initiatives'] }
+    ];
+    const pillarList = document.getElementById('pillarList');
+    pillars.forEach(pillar => {
+      const card = document.createElement('div');
+      card.className = 'pillar-card';
+      card.innerHTML = `
+        <img class="pillar-icon" src="${pillar.image}" alt="${pillar.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="pillar-icon" style="display:none;background: ${pillar.color}15; color: ${pillar.color};align-items:center;justify-content:center;font-size:24px;font-weight:700;">${pillar.title[0]}</div>
+        <h3>${pillar.title}</h3>
+        <p>${pillar.description}</p>
+        <div class="learn-more" style="color: ${pillar.color};">Learn More</div>
+      `;
+      card.onclick = () => showDetail(pillar);
+      pillarList.appendChild(card);
+    });
+
+    function showDetail(pillar) {
+      document.getElementById('mainView').classList.add('hidden');
+      const detailView = document.getElementById('detailView');
+      const content = document.getElementById('detailContent');
+      content.innerHTML = `
+        <div style="padding: 24px 20px; max-width: 500px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, ${pillar.color}, ${pillar.color}CC); padding: 24px 20px 32px; border-radius: 0 0 32px 32px; color: white; text-align: center; margin: -24px -20px 24px;">
+            <button onclick="goBack()" style="background: rgba(255,255,255,0.2); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; margin-bottom: 16px;">&larr;</button>
+            <h2>${pillar.title}</h2>
+          </div>
+          <p style="font-size: 16px; margin-bottom: 24px;">${pillar.description}</p>
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">How You Can Help</h3>
+          ${pillar.tips.map(tip => `<div style="display: flex; align-items: center; background: var(--white); padding: 16px; border-radius: 12px; margin-bottom: 12px; gap: 12px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: ${pillar.color}; flex-shrink: 0;"></div><span>${tip}</span></div>`).join('')}
+        </div>
+      `;
+      detailView.classList.remove('hidden');
+    }
+
+    function goBack() {
+      document.getElementById('detailView').classList.add('hidden');
+      document.getElementById('mainView').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

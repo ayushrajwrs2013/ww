@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteWise - Waste Management Survey</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root, [data-theme="light"] {
+      --primary: #2E7D32;
+      --primary-light: #4CAF50;
+      --bg: #F5F9F5;
+      --white: #FFFFFF;
+      --text: #1A1A2E;
+      --text-light: #5C6B5C;
+    }
+    [data-theme="dark"] {
+      --primary: #4CAF50;
+      --primary-light: #2E7D32;
+      --bg: #0D1B0D;
+      --white: #1A2E1A;
+      --text: #E8F5E8;
+      --text-light: #A5C9A5;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .navbar { background: var(--white); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+    .navbar .logo { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .navbar .nav-links { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .navbar .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: all 0.2s; }
+    .navbar .nav-links a:hover, .navbar .nav-links a.active { background: var(--primary); color: var(--white); }
+    .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 1000; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--primary); background: var(--white); cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+    .theme-toggle:hover { transform: scale(1.1); }
+    .theme-toggle .icon { font-size: 24px; }
+    .theme-toggle .sun-icon { display: block; color: #FFA000; }
+    .theme-toggle .moon-icon { display: none; color: #5C6BC0; }
+    [data-theme="dark"] .theme-toggle .sun-icon { display: none; }
+    [data-theme="dark"] .theme-toggle .moon-icon { display: block; }
+    .section { padding: 24px 20px; max-width: 500px; margin: 0 auto; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .section-subtitle { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .survey-card { background: var(--white); border-radius: 20px; padding: 24px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 16px; }
+    .progress-wrap { height: 8px; background: var(--bg); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+    .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 8px; transition: width 0.3s ease; }
+    .progress-text { font-size: 12px; color: var(--text-light); text-align: right; margin-top: -14px; margin-bottom: 16px; }
+    .part-label { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--primary); text-transform: uppercase; margin: 24px 0 14px; padding-bottom: 6px; border-bottom: 2px solid var(--bg); }
+    .part-label:first-of-type { margin-top: 0; }
+    .question { margin-bottom: 22px; }
+    .question > label, .q-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .q-label .req { color: #e53935; }
+    .q-hint { display: block; font-size: 12px; color: var(--text-light); font-weight: 400; margin-top: 2px; }
+    .question input[type="text"], .question input[type="number"], .question select, .question textarea {
+      width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; color: var(--text); background: var(--bg); transition: border-color 0.2s; font-family: inherit;
+    }
+    .question input:focus, .question select:focus, .question textarea:focus { outline: none; border-color: var(--primary); }
+    .question textarea { min-height: 90px; resize: vertical; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .option-list { display: flex; flex-direction: column; gap: 8px; }
+    .option { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 12px 14px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; transition: all 0.15s; font-size: 14px; }
+    .option:hover { border-color: var(--primary-light); }
+    .option input { accent-color: var(--primary); width: 18px; height: 18px; flex-shrink: 0; }
+    .option.selected { border-color: var(--primary); background: var(--primary); color: var(--white); }
+    .submit-btn { width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s; margin-top: 8px; }
+    .submit-btn:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(46,125,50,0.3); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .form-error { background: #fdecea; color: #c62828; border-radius: 12px; padding: 12px 14px; font-size: 13px; font-weight: 500; margin-bottom: 16px; display: none; }
+    [data-theme="dark"] .form-error { background: #4a1515; color: #ef9a9a; }
+    .success-card { display: none; text-align: center; padding: 40px 20px; }
+    .success-card.active { display: block; }
+    .success-icon { width: 84px; height: 84px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 42px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; animation: pop 0.4s ease; }
+    @keyframes pop { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    .success-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .success-card p { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .footer { display: flex; align-items: center; justify-content: center; padding: 24px; font-size: 12px; color: var(--text-light); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">WasteWise</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="calculator.html">Calculator</a>
+      <a href="survey.html" class="active">Survey</a>
+      <a href="admin.html">Admin</a>
+    </div>
+  </nav>
+
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span class="icon sun-icon">&#9728;</span>
+    <span class="icon moon-icon">&#9790;</span>
+  </button>
+
+  <div class="section">
+    <h2 class="section-title">Waste Management Survey</h2>
+    <p class="section-subtitle">NCSC Project — helping us understand waste generation and segregation habits across India.</p>
+
+    <div class="survey-card" id="welcomeCard">
+      <div style="text-align: center; padding: 12px 0 4px;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 36px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">&#127793;</div>
+        <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Waste Management Survey</h3>
+        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">This survey takes about <strong>2 minutes</strong>. It is open to everyone across India and your responses are collected anonymously for our National Children's Science Congress project.</p>
+        <div style="background: var(--bg); border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 20px;">
+          <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">What we ask about</div>
+          <div style="font-size: 13px; color: var(--text-light); line-height: 1.9;">
+            &#8226; Waste generation in your household / shop<br>
+            &#8226; Waste segregation &amp; disposal habits<br>
+            &#8226; Awareness of plastic pollution &amp; scientific solutions
+          </div>
+        </div>
+        <button class="submit-btn" onclick="startSurvey()">Start Survey</button>
+        <div style="margin-top: 14px; font-size: 13px;">
+          <a href="results.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">View live results &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="survey-card" id="surveyCard" style="display: none;">
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-text" id="progressText">0% complete</div>
+
+      <div class="form-error" id="formError"></div>
+
+      <form id="surveyForm" novalidate>
+        <div class="part-label">Respondent details</div>
+
+        <div class="question">
+          <label class="q-label" for="name">Name of respondent <span class="q-hint">optional — leave blank to stay anonymous</span></label>
+          <input type="text" id="name" name="name" placeholder="e.g., Priya Sharma" autocomplete="name">
+        </div>
+
+        <div class="row2">
+          <div class="question">
+            <label class="q-label" for="age">Age <span class="req">*</span></label>
+            <input type="number" id="age" name="age" min="5" max="120" placeholder="e.g., 16" required>
+          </div>
+          <div class="question">
+            <label class="q-label" for="gender">Gender <span class="req">*</span></label>
+            <select id="gender" name="gender" required>
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="question">
+          <label class="q-label" for="occupation">Occupation <span class="req">*</span></label>
+          <input type="text" id="occupation" name="occupation" placeholder="e.g., Student, Farmer, Shopkeeper" required>
+        </div>
+
+        <div class="question">
+          <label class="q-label" for="town">Town / city / village <span class="req">*</span></label>
+          <input type="text" id="town" name="town" placeholder="e.g., Bhopal" required>
+        </div>
+
+        <div class="part-label">A. Waste generation</div>
+
+        <div class="question">
+          <span class="q-label">1. What type of waste is generated most frequently in your household / shop? <span class="req">*</span><span class="q-hint">select all that apply</span></span>
+          <div class="option-list" data-name="wasteFrequent" data-type="checkbox">
+            <label class="option"><input type="checkbox" name="wasteFrequent" value="Food / vegetable waste"> Food / vegetable waste</label>
+            <label class="option"><input type="checkbox" name="wasteFrequent" value="Plastic waste"> Plastic waste</label>
+            <label class="option"><input type="checkbox" name="wasteFrequent" value="Paper / cardboard"> Paper / cardboard</label>
+            <label class="option"><input type="checkbox" name="wasteFrequent" value="Glass / metal"> Glass / metal</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <span class="q-label">2. Which waste do you generate in the largest quantity? <span class="req">*</span></span>
+          <div class="option-list" data-name="wasteLargest" data-type="radio">
+            <label class="option"><input type="radio" name="wasteLargest" value="Biodegradable waste" required> Biodegradable waste</label>
+            <label class="option"><input type="radio" name="wasteLargest" value="Plastic"> Plastic</label>
+            <label class="option"><input type="radio" name="wasteLargest" value="Paper"> Paper</label>
+            <label class="option"><input type="radio" name="wasteLargest" value="Metal / glass"> Metal / glass</label>
+            <label class="option"><input type="radio" name="wasteLargest" value="Other"> Other</label>
+          </div>
+        </div>
+
+        <div class="part-label">B. Waste segregation</div>
+
+        <div class="question">
+          <span class="q-label">3. Do you separate waste before disposal? <span class="req">*</span></span>
+          <div class="option-list" data-name="segregate" data-type="radio">
+            <label class="option"><input type="radio" name="segregate" value="Always" required> Always</label>
+            <label class="option"><input type="radio" name="segregate" value="Sometimes"> Sometimes</label>
+            <label class="option"><input type="radio" name="segregate" value="Never"> Never</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <span class="q-label">4. What do you normally do with food and vegetable waste? <span class="req">*</span></span>
+          <div class="option-list" data-name="foodWaste" data-type="radio">
+            <label class="option"><input type="radio" name="foodWaste" value="Put it in the general waste" required> Put it in the general waste</label>
+            <label class="option"><input type="radio" name="foodWaste" value="Compost it"> Compost it</label>
+            <label class="option"><input type="radio" name="foodWaste" value="Give it for animal feed"> Give it for animal feed</label>
+            <label class="option"><input type="radio" name="foodWaste" value="Other"> Other</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <span class="q-label">5. Do you think plastic waste can harm rivers and aquatic life? <span class="req">*</span></span>
+          <div class="option-list" data-name="plasticHarm" data-type="radio">
+            <label class="option"><input type="radio" name="plasticHarm" value="Yes" required> Yes</label>
+            <label class="option"><input type="radio" name="plasticHarm" value="No"> No</label>
+            <label class="option"><input type="radio" name="plasticHarm" value="Don't know"> Don't know</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <span class="q-label">6. Which scientific model would you find most useful for waste management? <span class="req">*</span></span>
+          <div class="option-list" data-name="modelUseful" data-type="radio">
+            <label class="option"><input type="radio" name="modelUseful" value="River Waste Cleaner Model" required> River Waste Cleaner Model</label>
+            <label class="option"><input type="radio" name="modelUseful" value="Waste-to-Biogas Model"> Waste-to-Biogas Model</label>
+            <label class="option"><input type="radio" name="modelUseful" value="Plastic Waste Recycling Model"> Plastic Waste Recycling Model</label>
+            <label class="option"><input type="radio" name="modelUseful" value="Composting Model"> Composting Model</label>
+            <label class="option"><input type="radio" name="modelUseful" value="Other"> Other</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <label class="q-label" for="otherDetails">If you selected "Other" anywhere, please specify <span class="q-hint">optional</span></label>
+          <input type="text" id="otherDetails" name="otherDetails" placeholder="Your answer">
+        </div>
+
+        <div class="question">
+          <label class="q-label" for="suggestion">7. Any suggestion from your experience <span class="q-hint">optional</span></label>
+          <textarea id="suggestion" name="suggestion" placeholder="Share your ideas for better waste management..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Submit Survey</button>
+      </form>
+
+      <div class="success-card" id="successCard">
+        <div class="success-icon">&#10003;</div>
+        <h3>Thank You!</h3>
+        <p>Your response has been recorded.<br>Your answers help us build a cleaner, waste-smart India.</p>
+        <div id="offlineNotice" style="display:none; background:#fff3cd; color:#856404; border-radius:12px; padding:14px; font-size:13px; font-weight:500; margin-bottom:16px; text-align:left;">
+          &#9888; Your response was saved <strong>only on this device</strong> because the server was not reachable. It will <strong>not</strong> appear in the shared results. To make sure it is counted, please refill the form while connected to the same WiFi as the server.
+        </div>
+        <a href="results.html" class="submit-btn" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 28px; margin-right: 8px;">View Live Results</a>
+        <a href="index.html" class="submit-btn" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 28px; background: var(--text-light);">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>WasteWise Project</span>
+  </div>
+
+  <script>
+    /* ============================================================
+       DATA STORAGE
+       SCRIPT_URL = '/api/submit' sends responses to the local
+       SQLite database (run `node server.js`).
+       If you host on Netlify (static only), set SCRIPT_URL to your
+       Google Apps Script Web app URL instead (see apps-script/).
+       If the server is unreachable, responses are kept on-device
+       in localStorage as a fallback so nothing is lost.
+       ============================================================ */
+    const SCRIPT_URL = '/api/submit';
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+
+    const form = document.getElementById('surveyForm');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const formError = document.getElementById('formError');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function startSurvey() {
+      document.getElementById('welcomeCard').style.display = 'none';
+      document.getElementById('surveyCard').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('.option input').forEach(input => {
+      input.addEventListener('change', () => {
+        const list = input.closest('.option-list');
+        list.querySelectorAll('.option').forEach(opt => {
+          const inp = opt.querySelector('input');
+          opt.classList.toggle('selected', inp.checked);
+        });
+        updateProgress();
+      });
+    });
+
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('input', updateProgress);
+      el.addEventListener('change', updateProgress);
+    });
+
+    function val(id) {
+      return (document.getElementById(id).value || '').trim();
+    }
+
+    function answeredQuestions() {
+      const total = 10;
+      let done = 0;
+      if (val('age')) done++;
+      if (document.getElementById('gender').value) done++;
+      if (val('occupation')) done++;
+      if (val('town')) done++;
+      if (form.querySelectorAll('input[name="wasteFrequent"]:checked').length) done++;
+      if (form.querySelector('input[name="wasteLargest"]:checked')) done++;
+      if (form.querySelector('input[name="segregate"]:checked')) done++;
+      if (form.querySelector('input[name="foodWaste"]:checked')) done++;
+      if (form.querySelector('input[name="plasticHarm"]:checked')) done++;
+      if (form.querySelector('input[name="modelUseful"]:checked')) done++;
+      return { done, total };
+    }
+
+    function updateProgress() {
+      const { done, total } = answeredQuestions();
+      const pct = Math.round((done / total) * 100);
+      progressBar.style.width = pct + '%';
+      progressText.textContent = pct + '% complete';
+    }
+
+    function collectData() {
+      const d = new FormData(form);
+      return {
+        timestamp: new Date().toISOString(),
+        name: d.get('name') || 'Anonymous',
+        age: d.get('age'),
+        gender: d.get('gender'),
+        occupation: d.get('occupation'),
+        town: d.get('town'),
+        wasteFrequent: d.getAll('wasteFrequent').join(', '),
+        wasteLargest: d.get('wasteLargest'),
+        segregate: d.get('segregate'),
+        foodWaste: d.get('foodWaste'),
+        plasticHarm: d.get('plasticHarm'),
+        modelUseful: d.get('modelUseful'),
+        otherDetails: d.get('otherDetails') || '',
+        suggestion: d.get('suggestion') || ''
+      };
+    }
+
+    function validate() {
+      const missing = [];
+      if (!val('age')) missing.push('age');
+      if (!document.getElementById('gender').value) missing.push('gender');
+      if (!val('occupation')) missing.push('occupation');
+      if (!val('town')) missing.push('town');
+      if (!form.querySelectorAll('input[name="wasteFrequent"]:checked').length) missing.push('most frequent waste');
+      if (!form.querySelector('input[name="wasteLargest"]:checked')) missing.push('largest quantity waste');
+      if (!form.querySelector('input[name="segregate"]:checked')) missing.push('segregation habit');
+      if (!form.querySelector('input[name="foodWaste"]:checked')) missing.push('food waste handling');
+      if (!form.querySelector('input[name="plasticHarm"]:checked')) missing.push('plastic & aquatic life');
+      if (!form.querySelector('input[name="modelUseful"]:checked')) missing.push('useful scientific model');
+      return missing;
+    }
+
+    function showError(msg) {
+      formError.textContent = msg;
+      formError.style.display = 'block';
+      formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formError.style.display = 'none';
+
+      const missing = validate();
+      if (missing.length) {
+        showError('Please answer all required questions: ' + missing.join(', ') + '.');
+        return;
+      }
+
+      const payload = collectData();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      let savedOnServer = false;
+      try {
+        if (/^https?:/i.test(SCRIPT_URL)) {
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          savedOnServer = true;
+        } else {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('Server responded ' + res.status);
+          savedOnServer = true;
+        }
+      } catch (err) {
+        saveLocal(payload);
+      }
+
+      form.style.display = 'none';
+      document.querySelector('.progress-wrap').style.display = 'none';
+      progressText.style.display = 'none';
+      document.getElementById('successCard').classList.add('active');
+
+      if (!savedOnServer) {
+        document.getElementById('offlineNotice').style.display = 'block';
+      }
+    });
+
+    function saveLocal(payload) {
+      const key = 'wastewise_survey_responses';
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.push(payload);
+      localStorage.setItem(key, JSON.stringify(existing));
+    }
+
+    updateProgress();
+  </script>
+</body>
+</html>
