@@ -8,5 +8,3 @@ services:
     envVars:
       - key: ADMIN_KEY
         value: 2gVaaxiSH4HL
-      - key: DATABASE_URL
-        sync: false
