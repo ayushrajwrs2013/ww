@@ -2,13 +2,14 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var URL = require('url');
-var initSqlJs = require('sql.js');
 
 var PORT = process.env.PORT || 5500;
 var ADMIN_KEY = process.env.ADMIN_KEY || '2gVaaxiSH4HL';
 var ROOT = __dirname;
 var DATA_DIR = path.join(ROOT, 'data');
 var DB_FILE = path.join(DATA_DIR, 'responses.db');
+var DATABASE_URL = process.env.DATABASE_URL || '';
+var USE_PG = DATABASE_URL.length > 0;
 
 var HEADERS = [
   'Timestamp', 'Name', 'Age', 'Gender', 'Occupation', 'Town',
@@ -34,35 +35,33 @@ var MIME = {
 };
 
 var db = null;
+var pool = null;
+
+var CREATE_SQLITE =
+  'CREATE TABLE IF NOT EXISTS responses (' +
+  'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
+  'created_at TEXT, name TEXT, age TEXT, gender TEXT, occupation TEXT, town TEXT,' +
+  'waste_frequent TEXT, waste_largest TEXT, segregate TEXT, food_waste TEXT,' +
+  'plastic_harm TEXT, model_useful TEXT, other_details TEXT, suggestion TEXT)';
+
+var CREATE_PG =
+  'CREATE TABLE IF NOT EXISTS responses (' +
+  'id SERIAL PRIMARY KEY,' +
+  'created_at TEXT, name TEXT, age TEXT, gender TEXT, occupation TEXT, town TEXT,' +
+  'waste_frequent TEXT, waste_largest TEXT, segregate TEXT, food_waste TEXT,' +
+  'plastic_harm TEXT, model_useful TEXT, other_details TEXT, suggestion TEXT)';
+
+var INSERT_COLS = 'created_at, name, age, gender, occupation, town, waste_frequent, ' +
+  'waste_largest, segregate, food_waste, plastic_harm, model_useful, other_details, suggestion';
 
 function persist() {
+  if (USE_PG || !db) return;
   var data = db.export();
   fs.writeFileSync(DB_FILE, Buffer.from(data));
 }
 
-function initDb(SQL) {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (fs.existsSync(DB_FILE)) {
-    db = new SQL.Database(new Uint8Array(fs.readFileSync(DB_FILE)));
-  } else {
-    db = new SQL.Database();
-  }
-  db.run(
-    'CREATE TABLE IF NOT EXISTS responses (' +
-    'id INTEGER PRIMARY KEY AUTOINCREMENT,' +
-    'created_at TEXT, name TEXT, age TEXT, gender TEXT, occupation TEXT, town TEXT,' +
-    'waste_frequent TEXT, waste_largest TEXT, segregate TEXT, food_waste TEXT,' +
-    'plastic_harm TEXT, model_useful TEXT, other_details TEXT, suggestion TEXT)'
-  );
-  persist();
-}
-
-function insertResponse(p) {
-  var stmt = db.prepare(
-    'INSERT INTO responses (created_at, name, age, gender, occupation, town, waste_frequent, waste_largest, segregate, food_waste, plastic_harm, model_useful, other_details, suggestion) ' +
-    'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-  );
-  stmt.run([
+function rowValues(p) {
+  return [
     p.timestamp || new Date().toISOString(),
     p.name || '',
     p.age != null ? String(p.age) : '',
@@ -77,22 +76,84 @@ function insertResponse(p) {
     p.modelUseful || '',
     p.otherDetails || '',
     p.suggestion || ''
-  ]);
-  stmt.free();
-  persist();
+  ];
 }
 
-function getResponses() {
+function initStore(cb) {
+  if (USE_PG) {
+    var pg = require('pg');
+    var needsSsl = DATABASE_URL.indexOf('localhost') === -1;
+    pool = new pg.Pool({
+      connectionString: DATABASE_URL,
+      ssl: needsSsl ? { rejectUnauthorized: false } : false
+    });
+    return pool.query(CREATE_PG, function (err) { cb(err); });
+  }
+
+  var initSqlJs = require('sql.js');
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  initSqlJs({ locateFile: function (f) { return path.join(ROOT, 'node_modules', 'sql.js', 'dist', f); } })
+    .then(function (SQL) {
+      if (fs.existsSync(DB_FILE)) {
+        db = new SQL.Database(new Uint8Array(fs.readFileSync(DB_FILE)));
+      } else {
+        db = new SQL.Database();
+      }
+      db.run(CREATE_SQLITE);
+      persist();
+      cb(null);
+    })
+    .catch(cb);
+}
+
+function insertResponse(p, cb) {
+  var vals = rowValues(p);
+  if (USE_PG) {
+    var placeholders = vals.map(function (_, i) { return '$' + (i + 1); }).join(',');
+    return pool.query('INSERT INTO responses (' + INSERT_COLS + ') VALUES (' + placeholders + ')', vals, function (err) { cb(err); });
+  }
+  try {
+    var stmt = db.prepare('INSERT INTO responses (' + INSERT_COLS + ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    stmt.run(vals);
+    stmt.free();
+    persist();
+    cb(null);
+  } catch (e) {
+    cb(e);
+  }
+}
+
+function getResponses(cb) {
+  if (USE_PG) {
+    return pool.query('SELECT * FROM responses ORDER BY id DESC', function (err, result) {
+      if (err) return cb(err);
+      cb(null, result.rows);
+    });
+  }
   var res = db.exec('SELECT * FROM responses ORDER BY id DESC');
   var out = [];
-  if (!res.length) return out;
-  var cols = res[0].columns;
-  res[0].values.forEach(function (row) {
-    var o = {};
-    cols.forEach(function (c, i) { o[c] = row[i] == null ? '' : String(row[i]); });
-    out.push(o);
-  });
-  return out;
+  if (res.length) {
+    var cols = res[0].columns;
+    res[0].values.forEach(function (row) {
+      var o = {};
+      cols.forEach(function (c, i) { o[c] = row[i] == null ? '' : String(row[i]); });
+      out.push(o);
+    });
+  }
+  cb(null, out);
+}
+
+function deleteResponse(id, cb) {
+  if (USE_PG) {
+    return pool.query('DELETE FROM responses WHERE id = $1', [id], function (err) { cb(err); });
+  }
+  try {
+    db.run('DELETE FROM responses WHERE id = ?', [id]);
+    persist();
+    cb(null);
+  } catch (e) {
+    cb(e);
+  }
 }
 
 function toApiShape(rows) {
@@ -187,12 +248,10 @@ function handle(req, res) {
       } catch (e) {
         return sendJson(res, 400, { status: 'error', message: 'Invalid JSON' });
       }
-      try {
-        insertResponse(payload);
+      insertResponse(payload, function (err) {
+        if (err) return sendJson(res, 500, { status: 'error', message: String(err) });
         sendJson(res, 200, { status: 'success' });
-      } catch (e) {
-        sendJson(res, 500, { status: 'error', message: String(e) });
-      }
+      });
     });
   }
 
@@ -200,8 +259,10 @@ function handle(req, res) {
     if (query.key !== ADMIN_KEY) {
       return sendJson(res, 401, { status: 'error', message: 'unauthorized' });
     }
-    var rows = getResponses();
-    return sendJson(res, 200, { status: 'success', count: rows.length, responses: toApiShape(rows) });
+    return getResponses(function (err, rows) {
+      if (err) return sendJson(res, 500, { status: 'error', message: String(err) });
+      sendJson(res, 200, { status: 'success', count: rows.length, responses: toApiShape(rows) });
+    });
   }
 
   if (pathname === '/api/export.csv') {
@@ -209,13 +270,19 @@ function handle(req, res) {
       res.writeHead(401, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end('unauthorized');
     }
-    var csv = '\uFEFF' + toCsv(getResponses());
-    res.writeHead(200, {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="wastewise-responses.csv"',
-      'Content-Length': Buffer.byteLength(csv)
+    return getResponses(function (err, rows) {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        return res.end('error');
+      }
+      var csv = '\uFEFF' + toCsv(rows);
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="wastewise-responses.csv"',
+        'Content-Length': Buffer.byteLength(csv)
+      });
+      res.end(csv);
     });
-    return res.end(csv);
   }
 
   if (pathname === '/api/delete' && req.method === 'POST') {
@@ -223,26 +290,27 @@ function handle(req, res) {
       var payload;
       try { payload = JSON.parse(body); } catch (e) { payload = {}; }
       if (payload.key !== ADMIN_KEY) return sendJson(res, 401, { status: 'error', message: 'unauthorized' });
-      db.run('DELETE FROM responses WHERE id = ?', [payload.id]);
-      persist();
-      sendJson(res, 200, { status: 'success' });
+      deleteResponse(payload.id, function (err) {
+        if (err) return sendJson(res, 500, { status: 'error', message: String(err) });
+        sendJson(res, 200, { status: 'success' });
+      });
     });
   }
 
   serveStatic(req, res, pathname);
 }
 
-initSqlJs({ locateFile: function (f) { return path.join(ROOT, 'node_modules', 'sql.js', 'dist', f); } }).then(function (SQL) {
-  initDb(SQL);
+initStore(function (err) {
+  if (err) {
+    console.error('Failed to initialise database:', err);
+    process.exit(1);
+  }
   http.createServer(handle).listen(PORT, function () {
     console.log('WasteWise server running:');
     console.log('  Site    http://localhost:' + PORT + '/survey.html');
     console.log('  Results http://localhost:' + PORT + '/results.html');
     console.log('  Admin   http://localhost:' + PORT + '/admin.html');
-    console.log('  Database ' + DB_FILE);
+    console.log('  Storage ' + (USE_PG ? 'PostgreSQL (DATABASE_URL)' : DB_FILE));
     console.log('  Admin key "' + ADMIN_KEY + '"');
   });
-}).catch(function (err) {
-  console.error('Failed to start SQLite engine:', err);
-  process.exit(1);
 });
