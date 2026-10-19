@@ -8,7 +8,6 @@
   var textOrig = new WeakMap();
   var attrOrig = new WeakMap();
   var ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
-  var RTL = { ur: 1, sd: 1, ks: 1 };
 
   var CSS = ''
     + '.ww-lang{display:inline-flex;align-items:center;gap:6px;}'
@@ -97,7 +96,6 @@
 
   function applyAll() {
     document.documentElement.lang = current;
-    document.documentElement.dir = RTL[current] ? 'rtl' : 'ltr';
     if (document.body) walk(document.body);
     var sel = document.getElementById('wwLangSelect');
     if (sel && sel.value !== current) sel.value = current;

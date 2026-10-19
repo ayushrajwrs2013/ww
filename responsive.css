@@ -1,0 +1,70 @@
+/* WasteWise responsive / mobile layout */
+
+html { -webkit-text-size-adjust: 100%; }
+img { max-width: 100%; height: auto; }
+
+/* ---- Navbar: wrap instead of overflowing on phones ---- */
+@media (max-width: 820px) {
+  .navbar {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 10px 56px 10px 16px; /* right space clears the fixed theme button */
+  }
+  .navbar .logo { font-size: 18px; }
+  .navbar .nav-links {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    order: 3;
+    justify-content: center;
+  }
+  .navbar .nav-links a {
+    font-size: 13px;
+    padding: 7px 12px;
+    white-space: nowrap;
+  }
+  .ww-lang { gap: 4px; }
+  .ww-lang select {
+    max-width: 155px !important;
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* Stack multi-column cards that look cramped on phones */
+@media (max-width: 640px) {
+  .timeline-items { grid-template-columns: 1fr !important; }
+  .action-buttons { flex-wrap: wrap; }
+}
+@media (max-width: 460px) {
+  .row2 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .section,
+  .impact-section,
+  .pledge-section {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .navbar { padding-left: 14px; padding-right: 52px; }
+  .navbar .nav-links a { font-size: 12.5px; padding: 6px 10px; }
+  .ww-lang select { max-width: 130px; }
+}
+
+/* ---- Generic small-screen safety ---- */
+@media (max-width: 700px) {
+  .panel { padding: 18px 14px !important; border-radius: 14px; }
+  .section-title { font-size: 20px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar .actions { justify-content: flex-start; }
+}
+
+/* Tables scroll horizontally instead of breaking the page */
+.table-wrap { -webkit-overflow-scrolling: touch; }
