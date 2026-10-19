@@ -7,7 +7,7 @@
                    (server.js) instead.
    WASTEWISE_KEY : admin key required to view/export responses.
    ============================================================ */
-window.WASTEWISE_API = '';
+window.WASTEWISE_API = 'https://script.google.com/macros/s/AKfycbwrKV288Ku1EMmTTWtFblmKynrbJf1A13u2ss75JucXSyjLmclTikaAEsEufu2Q2Q24eQ/exec';
 window.WASTEWISE_KEY = 'ayushandom';
 
 /* --- JSONP helper: lets the browser read data from Google Apps
