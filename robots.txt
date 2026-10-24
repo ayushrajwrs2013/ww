@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /viewer.html
+Disallow: /results.html
+
+Sitemap: https://ayushrajwrs2013.github.io/ww/sitemap.xml
